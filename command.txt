@@ -1,0 +1,37 @@
+# Basic navigation
+cd "Warmup Assignment/searchclient"
+
+# Run a simple level (graphics on)
+java -jar server.jar \
+  -l levels/SAsimple1.lvl \
+  -c "python -m searchclient.searchclient -astar" \
+  -g -s 150 -t 180
+
+# Common parameters
+# -l  Path to level file
+# -c  Client command (search client)
+# -g  Enable graphics
+# -s  Search timeout (seconds)
+# -t  Total timeout (seconds)
+
+# Search client flags (examples)
+# -bfs | -dfs | -astar | -wastar | -greedy
+# --max-memory 2048   (MB)
+
+
+conda activate mas-ai
+
+python -m searchclient.searchclient -astar
+
+cd "Warmup Assignment/searchclient/searchclient_python"
+java -jar ../server.jar -l ../levels/SAsimple1.lvl -c "python -m searchclient.searchclient -astar" -g -s 150 -t 180
+
+
+server.jar is the game engine, DONT TOUCH THAT
+
+Make sure to cd into the client
+
+Map level creator
+https://mas-lvlr.vercel.app/
+
+java -jar ../server.jar -l ../levels/MAPF00.lvl -c "python -m searchclient.searchclient -bfs" -g -s 150 -t 180
