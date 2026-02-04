@@ -10,7 +10,7 @@ start_time = time.perf_counter()
 
 
 def search(initial_state: State, frontier: Frontier) -> list[list[Action]] | None:
-    output_fixed_solution = True
+    output_fixed_solution = False
 
     if output_fixed_solution:
         # Part 1:
@@ -65,6 +65,22 @@ def search(initial_state: State, frontier: Frontier) -> list[list[Action]] | Non
             return None
 
         # Your code here...
+        if frontier.is_empty():
+            print_search_status(explored, frontier)
+            return None
+
+        state = frontier.pop()
+
+        if state.is_goal_state():
+            print_search_status(explored, frontier)
+            return state.extract_plan()
+
+        explored.add(state)
+
+        for child in state.get_expanded_states():
+            if child not in explored and not frontier.contains(child):
+                frontier.add(child)
+
 
 
 def print_search_status(explored: set[State], frontier: Frontier) -> None:
