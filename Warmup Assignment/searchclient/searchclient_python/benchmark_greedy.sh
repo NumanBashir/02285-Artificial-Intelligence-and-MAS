@@ -1,8 +1,8 @@
 #!/bin/bash
-# Benchmark script for Exercise 3 - BFS benchmarking
+# Benchmark script for Exercise 4 - Greedy benchmarking
 
 echo "=========================================="
-echo "Exercise 3: BFS Benchmarking"
+echo "Exercise 4: Greedy Benchmarking"
 echo "=========================================="
 echo ""
 
@@ -13,21 +13,21 @@ levels=(
     "MAPF02C.lvl"
     "MAPF03.lvl"
     "MAPF03C.lvl"
-    "BFSfriendly.lvl"
     "MAPFslidingpuzzle.lvl"
     "MAPFreorder2.lvl"
+    "BFSfriendly.lvl"
 )
 
 for level in "${levels[@]}"; do
     echo ""
     echo "=========================================="
-    echo "Testing: $level with BFS"
+    echo "Testing: $level with Greedy"
     echo "=========================================="
     
     java -jar ../server.jar \
         -l "../levels/$level" \
-        -c "python -m searchclient.searchclient -bfs" \
-        -g -s 180 -t 180
+        -c "python -m searchclient.searchclient -greedy" \
+        -s 180 -t 180
     
     echo ""
     echo "Press Enter to continue to next level..."
@@ -36,5 +36,5 @@ done
 
 echo ""
 echo "=========================================="
-echo "BFS Benchmarking Complete!"
+echo "Greedy Benchmarking Complete!"
 echo "=========================================="

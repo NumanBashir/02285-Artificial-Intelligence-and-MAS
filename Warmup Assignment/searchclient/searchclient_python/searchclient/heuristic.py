@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 
 from searchclient.state import State
+import sys
 
 
 class Heuristic(ABC):
@@ -9,7 +10,30 @@ class Heuristic(ABC):
         pass
 
     def h(self, state: State) -> int:
-        return 0
+        """
+        Goal count heuristic: counts how many agents are not yet at their goal positions.
+        """
+        count = 0
+        num_agents = len(state.agent_rows)
+        
+        for agent in range(num_agents):
+            agent_goal_char = str(agent)
+            agent_row = state.agent_rows[agent]
+            agent_col = state.agent_cols[agent]
+            
+            if State.goals[agent_row][agent_col] != agent_goal_char:
+                count += 1
+        
+        # DEBUG: Print heuristic value
+        if not hasattr(self, '_debug_count'):
+            self._debug_count = 0
+        self._debug_count += 1
+        
+        # Uncomment the following lines to print heuristic values for debugging
+        # if self._debug_count % 10 == 0:  # Print every 10th call to avoid spam
+        #     print(f"DEBUG: h(state with g={state.g}) = {count}", file=sys.stderr)
+        
+        return count
 
     @abstractmethod
     def f(self, state: State) -> int: ...
