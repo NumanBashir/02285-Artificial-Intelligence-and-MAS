@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from collections import deque
+import heapq
 
 from searchclient.heuristic import Heuristic
 from searchclient.state import State
@@ -85,22 +86,29 @@ class FrontierBestFirst(Frontier):
     def __init__(self, heuristic: Heuristic) -> None:
         super().__init__()
         self.heuristic = heuristic
-        raise NotImplementedError
+        self.heap: list[tuple[int, int, State]] = []
+        self.set: set[State] = set()
+        self._counter = 0  # Tie-breaker for heap ordering
 
     def add(self, state: State) -> None:
-        raise NotImplementedError
+        f_value = self.heuristic.f(state)
+        heapq.heappush(self.heap, (f_value, self._counter, state))
+        self.set.add(state)
+        self._counter += 1
 
     def pop(self) -> State:
-        raise NotImplementedError
+        f_value, _, state = heapq.heappop(self.heap)
+        self.set.remove(state)
+        return state
 
     def is_empty(self) -> bool:
-        raise NotImplementedError
+        return len(self.heap) == 0
 
     def size(self) -> int:
-        raise NotImplementedError
+        return len(self.heap)
 
     def contains(self, state: State) -> bool:
-        raise NotImplementedError
+        return state in self.set
 
     def get_name(self) -> str:
         return f"best-first search using {self.heuristic}"

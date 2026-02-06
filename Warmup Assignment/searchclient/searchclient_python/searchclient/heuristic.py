@@ -9,7 +9,7 @@ class Heuristic(ABC):
         pass
 
     def h(self, state: State) -> int:
-        raise NotImplementedError
+        return 0
 
     @abstractmethod
     def f(self, state: State) -> int: ...

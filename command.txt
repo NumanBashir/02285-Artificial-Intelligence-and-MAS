@@ -35,3 +35,5 @@ Map level creator
 https://mas-lvlr.vercel.app/
 
 java -jar ../server.jar -l ../levels/MAPF00.lvl -c "python -m searchclient.searchclient -bfs" -g -s 150 -t 180
+
+java -jar ../server.jar -l ../levels/MAPF00.lvl -c "python -m searchclient.searchclient -astar" -g -s 60 -t 180
