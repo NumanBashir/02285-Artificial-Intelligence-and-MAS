@@ -6,6 +6,8 @@ from typing import Literal
 class ActionType(Enum):
     NoOp = 0
     Move = 1
+    Push = 2
+    Pull = 3
 
 
 @unique
@@ -28,6 +30,16 @@ class Action(Enum):
     MoveS = ("Move(S)", ActionType.Move, 1, 0, 0, 0)
     MoveE = ("Move(E)", ActionType.Move, 0, 1, 0, 0)
     MoveW = ("Move(W)", ActionType.Move, 0, -1, 0, 0)
+
+    PushN = ("Push(N,N)", ActionType.Push, -1, 0, -1, 0)
+    PushS = ("Push(S,S)", ActionType.Push, 1, 0, 1, 0)
+    PushE = ("Push(E,E)", ActionType.Push, 0, 1, 0, 1)
+    PushW = ("Push(W,W)", ActionType.Push, 0, -1, 0, -1)
+
+    PullN = ("Pull(N,N)", ActionType.Pull, -1, 0, -1, 0)
+    PullS = ("Pull(S,S)", ActionType.Pull, 1, 0, 1, 0)
+    PullE = ("Pull(E,E)", ActionType.Pull, 0, 1, 0, 1)
+    PullW = ("Pull(W,W)", ActionType.Pull, 0, -1, 0, -1)
 
     def __init__(
         self,

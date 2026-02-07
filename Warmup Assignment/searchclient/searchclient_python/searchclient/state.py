@@ -61,6 +61,40 @@ class State:
                 copy_agent_rows[agent] += action.agent_row_delta
                 copy_agent_cols[agent] += action.agent_col_delta
 
+            elif action.type is ActionType.Push:
+                # Agent moves to box position
+                agent_row = self.agent_rows[agent]
+                agent_col = self.agent_cols[agent]
+                box_row = agent_row + action.agent_row_delta
+                box_col = agent_col + action.agent_col_delta
+                box_new_row = box_row + action.box_row_delta
+                box_new_col = box_col + action.box_col_delta
+                
+                # Move agent
+                copy_agent_rows[agent] = box_row
+                copy_agent_cols[agent] = box_col
+                
+                # Move box
+                box_char = copy_boxes[box_row][box_col]
+                copy_boxes[box_row][box_col] = ''
+                copy_boxes[box_new_row][box_new_col] = box_char
+
+            elif action.type is ActionType.Pull:
+                # Agent moves, box follows to agent's old position
+                agent_row = self.agent_rows[agent]
+                agent_col = self.agent_cols[agent]
+                box_row = agent_row - action.box_row_delta
+                box_col = agent_col - action.box_col_delta
+                
+                # Move agent
+                copy_agent_rows[agent] += action.agent_row_delta
+                copy_agent_cols[agent] += action.agent_col_delta
+                
+                # Move box to agent's old position
+                box_char = copy_boxes[box_row][box_col]
+                copy_boxes[box_row][box_col] = ''
+                copy_boxes[agent_row][agent_col] = box_char
+
         copy_state = State(copy_agent_rows, copy_agent_cols, copy_boxes)
 
         copy_state.parent = self
@@ -122,7 +156,7 @@ class State:
     def is_applicable(self, agent: int, action: Action) -> bool:
         agent_row = self.agent_rows[agent]
         agent_col = self.agent_cols[agent]
-        _agent_color = State.agent_colors[agent]
+        agent_color = State.agent_colors[agent]
 
         if action.type is ActionType.NoOp:
             return True
@@ -131,6 +165,49 @@ class State:
             destination_row = agent_row + action.agent_row_delta
             destination_col = agent_col + action.agent_col_delta
             return self.is_free(destination_row, destination_col)
+
+        if action.type is ActionType.Push:
+            # Agent moves to box position, box moves further in same direction
+            box_row = agent_row + action.agent_row_delta
+            box_col = agent_col + action.agent_col_delta
+            box_new_row = box_row + action.box_row_delta
+            box_new_col = box_col + action.box_col_delta
+            
+            # Check: box exists at adjacent cell
+            box_char = self.boxes[box_row][box_col]
+            if not box_char:
+                return False
+            
+            # Check: agent and box have same color
+            box_color = State.box_colors[ord(box_char) - ord('A')]
+            if agent_color != box_color:
+                return False
+            
+            # Check: destination cell for box is free
+            return self.is_free(box_new_row, box_new_col)
+
+        if action.type is ActionType.Pull:
+            # Agent moves, box follows from behind
+            destination_row = agent_row + action.agent_row_delta
+            destination_col = agent_col + action.agent_col_delta
+            box_row = agent_row - action.box_row_delta
+            box_col = agent_col - action.box_col_delta
+            
+            # Check: destination for agent is free
+            if not self.is_free(destination_row, destination_col):
+                return False
+            
+            # Check: box exists behind agent
+            box_char = self.boxes[box_row][box_col]
+            if not box_char:
+                return False
+            
+            # Check: agent and box have same color
+            box_color = State.box_colors[ord(box_char) - ord('A')]
+            if agent_color != box_color:
+                return False
+            
+            return True
 
         assert False, f"Not implemented for action type {action.type}."
 
