@@ -16,8 +16,35 @@ class Heuristic(ABC):
 
     def h(self, state: State) -> int:
         """
-        Distance-sum heuristic: sum of shortest-path distances from each agent
+        Goal count heuristic (revised for single-agent with boxes):
+        Counts how many agents and boxes are not at their goal positions.
+        """
+        count = 0
+        num_agents = len(state.agent_rows)
+        
+        # Count agents not at their goal
+        for agent in range(num_agents):
+            agent_goal_char = str(agent)
+            agent_row = state.agent_rows[agent]
+            agent_col = state.agent_cols[agent]
+            if State.goals[agent_row][agent_col] != agent_goal_char:
+                count += 1
+        
+        # Count boxes not at their goal
+        for row in range(len(state.boxes)):
+            for col in range(len(state.boxes[row])):
+                box_char = state.boxes[row][col]
+                if box_char:  # Box exists at this position
+                    if State.goals[row][col] != box_char:
+                        count += 1
+        
+        return count
+
+    def h_distance_sum(self, state: State) -> int:
+        """
+        Distance-sum heuristic (old): sum of shortest-path distances from each agent
         to its own goal, on the static grid (walls only).
+        Only works for multi-agent pathfinding without boxes.
         """
         # Reference (old goal-count heuristic):
         # count = 0
@@ -44,15 +71,6 @@ class Heuristic(ABC):
                 return self._inf
             total += d
         
-        # DEBUG: Print heuristic value
-        if not hasattr(self, '_debug_count'):
-            self._debug_count = 0
-        self._debug_count += 1
-        
-        # Uncomment the following lines to print heuristic values for debugging
-        # if self._debug_count % 10 == 0:  # Print every 10th call to avoid spam
-        #     print(f"DEBUG: h(state with g={state.g}) = {total}", file=sys.stderr)
-
         return total
 
     def _find_agent_goals(self) -> list[tuple[int, int] | None]:

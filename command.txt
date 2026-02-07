@@ -37,3 +37,6 @@ https://mas-lvlr.vercel.app/
 java -jar ../server.jar -l ../levels/MAPF00.lvl -c "python -m searchclient.searchclient -bfs" -g -s 150 -t 180
 
 java -jar ../server.jar -l ../levels/MAPF00.lvl -c "python -m searchclient.searchclient -astar" -g -s 180 -t 180
+
+// With memory
+java -Xmx8g -jar ../server.jar -l ../levels/SACrunch.lvl -c "python -m searchclient.searchclient -greedy --max-memory 8192" -g -s 180 -t 180
