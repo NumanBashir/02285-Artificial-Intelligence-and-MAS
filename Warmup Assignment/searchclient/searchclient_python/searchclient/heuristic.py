@@ -13,32 +13,60 @@ class Heuristic(ABC):
         self._cols = len(State.walls[0]) if self._rows > 0 else 0
         self._agent_goal_pos = self._find_agent_goals()
         self._distances = self._precompute_goal_distances()
+        self._box_goal_positions = self._find_box_goals()
+        self._box_goal_distances = self._precompute_box_goal_distances()
+        self._cell_dist_cache: dict[tuple[int, int], list[list[int]]] = {}
 
     def h(self, state: State) -> int:
         """
-        Goal count heuristic (revised for single-agent with boxes):
-        Counts how many agents and boxes are not at their goal positions.
+        Box-pushing heuristic:
+        Sum of box-to-goal distances plus agent-to-nearest-misplaced-box distance.
         """
-        count = 0
-        num_agents = len(state.agent_rows)
-        
-        # Count agents not at their goal
-        for agent in range(num_agents):
-            agent_goal_char = str(agent)
-            agent_row = state.agent_rows[agent]
-            agent_col = state.agent_cols[agent]
-            if State.goals[agent_row][agent_col] != agent_goal_char:
-                count += 1
-        
-        # Count boxes not at their goal
+        # Reference (old goal-count heuristic for boxes):
+        # count = 0
+        # num_agents = len(state.agent_rows)
+        # for agent in range(num_agents):
+        #     agent_goal_char = str(agent)
+        #     agent_row = state.agent_rows[agent]
+        #     agent_col = state.agent_cols[agent]
+        #     if State.goals[agent_row][agent_col] != agent_goal_char:
+        #         count += 1
+        # for row in range(len(state.boxes)):
+        #     for col in range(len(state.boxes[row])):
+        #         box_char = state.boxes[row][col]
+        #         if box_char and State.goals[row][col] != box_char:
+        #             count += 1
+        # return count
+
+        total = 0
+        misplaced_boxes: list[tuple[int, int]] = []
+
         for row in range(len(state.boxes)):
             for col in range(len(state.boxes[row])):
                 box_char = state.boxes[row][col]
-                if box_char:  # Box exists at this position
-                    if State.goals[row][col] != box_char:
-                        count += 1
-        
-        return count
+                if not box_char:
+                    continue
+                if State.goals[row][col] != box_char:
+                    misplaced_boxes.append((row, col))
+
+                goal_grids = self._box_goal_distances.get(box_char)
+                if not goal_grids:
+                    return self._inf
+                d = min(grid[row][col] for grid in goal_grids)
+                if d == self._inf:
+                    return self._inf
+                total += d
+
+        if misplaced_boxes and state.agent_rows:
+            agent_row = state.agent_rows[0]
+            agent_col = state.agent_cols[0]
+            agent_grid = self._get_cell_distances(agent_row, agent_col)
+            min_agent_to_box = min(agent_grid[r][c] for r, c in misplaced_boxes)
+            if min_agent_to_box == self._inf:
+                return self._inf
+            total += min_agent_to_box
+
+        return total
 
     def h_distance_sum(self, state: State) -> int:
         """
@@ -94,6 +122,27 @@ class Heuristic(ABC):
                 continue
             distances.append(self._bfs_distances(goal_pos))
         return distances
+
+    def _find_box_goals(self) -> dict[str, list[tuple[int, int]]]:
+        goals: dict[str, list[tuple[int, int]]] = {}
+        for row in range(self._rows):
+            for col in range(self._cols):
+                goal = State.goals[row][col]
+                if "A" <= goal <= "Z":
+                    goals.setdefault(goal, []).append((row, col))
+        return goals
+
+    def _precompute_box_goal_distances(self) -> dict[str, list[list[list[int]]]]:
+        distances: dict[str, list[list[list[int]]]] = {}
+        for box_char, positions in self._box_goal_positions.items():
+            distances[box_char] = [self._bfs_distances(pos) for pos in positions]
+        return distances
+
+    def _get_cell_distances(self, row: int, col: int) -> list[list[int]]:
+        key = (row, col)
+        if key not in self._cell_dist_cache:
+            self._cell_dist_cache[key] = self._bfs_distances(key)
+        return self._cell_dist_cache[key]
 
     def _bfs_distances(self, goal_pos: tuple[int, int]) -> list[list[int]]:
         dist = [[self._inf for _ in range(self._cols)] for _ in range(self._rows)]
